@@ -28,22 +28,12 @@ class Graphomer(nn.Module):
         self.embeddings = GraphEmbedding(
             d_model, atom_features_dim, bond_features_dim, max_in_degree=max_in_degree, max_out_degree=max_out_degree
         )
+
+        self.virtual_embeddings = VirtualNodeEmbedding(d_model)
+
         self.layers = nn.ModuleList(
             [GraphomerBlock(d_model, num_heads, d_ff, dropout, attn_dropout) for _ in range(num_layers)]
         )
-
-    def _to_dense_graph_with_virtual_node(self, batch: Data):
-
-        batch = self.embeddings(batch)
-
-        x = to_dense_batch(batch.x, batch.batch)
-        b, n, d = x.size()
-        x_with_vn = torch.zeros((b, n + 1, d), dtype=x.dtype, device=x.device)
-        x_with_vn[:, 1:, :] = x
-
-        edge_attr = to_dense_batch(batch.edge_attr, batch.batch)
-
-        return batch
 
     def forward(self, batch: Data):
         batch = self.embeddings(batch)
