@@ -1,0 +1,46 @@
+name: graphomer
+channels:
+  - openeye
+  - nvidia
+  - conda-forge
+  - pytorch
+  - pyg
+dependencies:
+  - python>=3.10
+  - python_abi
+  - pip
+  - gcc~=9.0
+  - gxx~=9.0
+  # dev
+  - black
+  - isort
+  - ruff
+  - pytest
+  - pre-commit
+  - pylint
+  - autopep8
+  - python-dotenv
+  # scientific libraries
+  - scikit-learn
+  # pytorch
+  - pytorch-cuda==11.8
+  - pytorch::pytorch>=2.0
+  - torchvision
+  - torchmetrics
+  - pyg
+  - pytorch-scatter
+  - lightning>=2.0
+  - wandb
+  - hydra-core==1.3.1
+  # molecular
+  - rdkit
+  # etc
+  - jupyter
+  - tqdm
+  - loguru
+  - rich
+  - pip:
+      - hydra-colorlog
+      - hydra-optuna-sweeper
+      - async-lru
+      - einops

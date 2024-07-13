@@ -3,17 +3,11 @@ from collections import defaultdict
 import pandas as pd
 
 # Load periodic table data
-PERIODIC_TABLE = pd.read_csv(
-    os.path.join(os.path.dirname(__file__), "periodic_table.csv")
-)
+PERIODIC_TABLE = pd.read_csv(os.path.join(os.path.dirname(__file__), "periodic_table.csv"))
 
 # Maps for atom group and period based on atomic number
-ATOMNUM2GROUP = defaultdict(
-    lambda: -1, {k: v for k, v in PERIODIC_TABLE[["atomic_num", "group"]].values}
-)
-ATOMNUM2PERIOD = defaultdict(
-    lambda: -1, {k: v for k, v in PERIODIC_TABLE[["atomic_num", "period"]].values}
-)
+ATOMNUM2GROUP = defaultdict(lambda: -1, {k: v for k, v in PERIODIC_TABLE[["atomic_num", "group"]].values})
+ATOMNUM2PERIOD = defaultdict(lambda: -1, {k: v for k, v in PERIODIC_TABLE[["atomic_num", "period"]].values})
 
 # Define valid features for atoms and bonds
 VALID_ATOM_FEATURES = {
@@ -27,13 +21,13 @@ VALID_ATOM_FEATURES = {
     "num_radical": list(range(5)),
     "hybridization": ["SP", "SP2", "SP3", "SP3D", "SP3D2"],
     "is_aromatic": [False, True],
-    "is_in_ring": [False, True]
+    "is_in_ring": [False, True],
 }
 
 VALID_BOND_FEATURES = {
     "bond_type": ["SINGLE", "DOUBLE", "TRIPLE", "AROMATIC"],
     "stereo": ["STEREONONE", "STEREOZ", "STEREOE", "STEREOCIS", "STEREOTRANS", "STEREOANY"],
-    "is_conjugated": [False, True]
+    "is_conjugated": [False, True],
 }
 
 ATOM_FEATURES_DIM = {k: len(v) for k, v in VALID_ATOM_FEATURES.items()}

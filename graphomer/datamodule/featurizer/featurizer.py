@@ -2,11 +2,13 @@ import abc
 import numpy as np
 import torch
 from torch_geometric.data import Data
+from torch_geometric.utils import degree
 from rdkit.Chem.rdchem import Atom, Bond, Mol
 from typing import Callable, Optional
-
+from einops import rearrange
 from .features import VALID_ATOM_FEATURES, VALID_BOND_FEATURES, ATOMNUM2GROUP, ATOMNUM2PERIOD
-from .utils import  safe_index, rdkit_parser
+from .utils import safe_index, rdkit_parser
+
 
 # Base class for featurizers
 class FeaturizerBase(abc.ABC):
@@ -49,6 +51,7 @@ class FeaturizerBase(abc.ABC):
         fields = [f"{k}={v}" for k, v in attributes]
         return f"{self.__class__.__name__}(" + ", ".join(fields) + ")"
 
+
 # Molecule featurizer class
 class GraphFeaturizer(FeaturizerBase):
     def featurize(self, mol: Mol) -> Data:
@@ -68,7 +71,7 @@ class GraphFeaturizer(FeaturizerBase):
             safe_index(VALID_ATOM_FEATURES["num_radical"], atom.GetNumRadicalElectrons()),
             safe_index(VALID_ATOM_FEATURES["hybridization"], str(atom.GetHybridization())),
             safe_index(VALID_ATOM_FEATURES["is_aromatic"], atom.GetIsAromatic()),
-            safe_index(VALID_ATOM_FEATURES["is_in_ring"], atom.IsInRing())
+            safe_index(VALID_ATOM_FEATURES["is_in_ring"], atom.IsInRing()),
         ]
         return np.array(features, dtype=np.int64)
 
@@ -77,7 +80,7 @@ class GraphFeaturizer(FeaturizerBase):
         features = [
             safe_index(VALID_BOND_FEATURES["bond_type"], str(bond.GetBondType())),
             safe_index(VALID_BOND_FEATURES["stereo"], str(bond.GetStereo())),
-            safe_index(VALID_BOND_FEATURES["is_conjugated"], bond.GetIsConjugated())
+            safe_index(VALID_BOND_FEATURES["is_conjugated"], bond.GetIsConjugated()),
         ]
         return np.array(features, dtype=np.int64)
 
@@ -90,8 +93,8 @@ class GraphFeaturizer(FeaturizerBase):
             atom_features.append(GraphFeaturizer.atom_featurizer(atom))
             atom_idx_map[atom.GetIdx()] = idx
 
-        x = np.stack(atom_features, axis=0)
-        
+        x = torch.tensor(atom_features, dtype=torch.int64)
+
         edges = []
         edge_features = []
 
@@ -103,16 +106,20 @@ class GraphFeaturizer(FeaturizerBase):
             edges.extend([(i, j), (j, i)])
             edge_features.extend([edge_feat, edge_feat])
 
-        edge_index = np.array(edges, dtype=np.int64).T
-        edge_attr = np.array(edge_features, dtype=np.int64)
+        edge_index = torch.tensor(edges, dtype=torch.int64).T
+        edge_attr = torch.tensor(edge_features, dtype=torch.int64)
+
+        deg = rearrange(degree(edge_index[0], len(x), dtype=torch.int64), "n -> n ()")
 
         return Data(
-            x=torch.from_numpy(x),
-            edge_index=torch.from_numpy(edge_index),
-            edge_attr=torch.from_numpy(edge_attr)
+            x=x,
+            edge_index=edge_index,
+            edge_attr=edge_attr,
+            degree=deg,
         )
 
+
 if __name__ == "__main__":
-    smiles = 'c1ccccc1'
+    smiles = "c1ccccc1"
     featurizer = GraphFeaturizer()
     print(featurizer(smiles))

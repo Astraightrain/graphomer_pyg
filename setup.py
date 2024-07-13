@@ -3,13 +3,23 @@ from setuptools import setup, find_packages
 setup(
     name="graphomer",
     version="0.1.0",
-    author="Astraightrains",
+    author="Astraightrain",
     author_email="sanice1229@gmail.com",
     description="graphomer implementation",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/Astraightrains/graphomer",
-    packages=find_packages(),
+    packages=find_packages(
+        exclude=(
+            "configs",
+            "runs",
+            "examples",
+            "results",
+            "outputs",
+            "exps",
+            "docs",
+        )
+    ),
     install_requires=["torch", "torch-geometric"],
     classifiers=[
         "Programming Language :: Python :: 3",
